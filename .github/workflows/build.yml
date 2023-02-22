@@ -26,4 +26,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ui
-          path: ${GITHUB_WORKSPACE}/src/ui/platforms/desktop/build
+          path: src/ui/platforms/desktop/build
