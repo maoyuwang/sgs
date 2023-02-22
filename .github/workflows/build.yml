@@ -1,0 +1,29 @@
+name: Build Workflow
+
+on:
+  [push]
+
+jobs:
+  build-ui:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: cd ${GITHUB_WORKSPACE} && npm install && npm install -g yarn
+      - run: cd ${GITHUB_WORKSPACE}/src/ui/platforms/desktop && npm install && yarn
+      - run: cd ${GITHUB_WORKSPACE}/src/ui/platforms/desktop && npm run build:mac
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ui
+          path: ${GITHUB_WORKSPACE}/src/ui/platforms/desktop/build
