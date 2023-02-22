@@ -1,0 +1,60 @@
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+# See: https://circleci.com/docs/2.0/configuration-reference
+version: 2.1
+
+# Define a job to be invoked later in a workflow.
+# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
+jobs:
+  build-ui:
+    docker:
+      - image: node:14
+    resource_class: medium+
+    steps:
+      - checkout
+      - run:
+          name: "Install Project Dependencies"
+          command: "cd /root/project && npm install"
+      - run:
+          name: "Install UI Dependencies"
+          command: "cd /root/project/src/ui/platforms/desktop && npm install && yarn"
+      - run:
+          name: "Build UI"
+          command: "cd /root/project/src/ui/platforms/desktop && npm run build:mac"
+      - run:
+          name: "Compress Artifacts"
+          command: tar -cvzf /tmp/ui.tar.gz /root/project/src/ui/platforms/desktop/build
+
+      - store_artifacts: 
+          path: "/tmp/ui.tar.gz"
+          destination: "ui.tar.gz"
+  
+  build-server:
+    docker:
+      - image: node:14
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          name: "Install Project Dependencies"
+          command: "cd /root/project && npm install"
+      - run:
+          name: "Install Server Denpencies"
+          command: "cd /root/project/src/server && npm install && yarn"
+      - run:
+          name: "Build Server"
+          command: "cd /root/project/src/server && npm run build"
+      - run:
+          name: "Compress Artifacts"
+          command: tar -cvzf /tmp/server.tar.gz /root/project/src/server/build
+      
+      - store_artifacts: 
+          path: "/tmp/server.tar.gz"
+          destination: "server.tar.gz"
+
+# Invoke jobs via workflows
+# See: https://circleci.com/docs/2.0/configuration-reference/#workflows
+workflows:
+  build:
+    jobs:
+      - build-ui
+      - build-server
